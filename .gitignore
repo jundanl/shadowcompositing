@@ -1,3 +1,9 @@
+.idea/
+out/
+rsc/demo
+rsc/*.ckpt
+rsc/*.zip
+
 # Resources
 rsc/checkpoints/*
 !rsc/checkpoints/.gitkeep
