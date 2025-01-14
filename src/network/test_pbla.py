@@ -15,6 +15,10 @@ Attribution-NonCommercial 4.0 International License.
 You should have received a copy of the license along with this
 work. If not, see <http://creativecommons.org/licenses/by-nc/4.0/>.
 """
+import os
+import os.path
+import time
+import argparse
 
 import torch
 import numpy as np
@@ -22,16 +26,37 @@ from imageio import v2 as iio
 from tqdm import tqdm
 from models.fixup import FixUpUnet
 
+
+def parse_argument():
+    parser = argparse.ArgumentParser(description='Inference script for the shadow harmonization network')
+    parser.add_argument('--device', type=str, default='cuda', help='Whether to use CUDA or CPU')
+    parser.add_argument('--proj_root', type=str, default='/mnt/94E2ECCDE2ECB4A0/Projects/shadowcompositing',
+                        help='Path to the project root')
+    parser.add_argument('--checkpoint', type=str, default='rsc/main.ckpt',
+                        help='Path to the network\'s pre-trained weights')
+    parser.add_argument('--output', type=str, default='out/test_bunny', help='Path to save the network\'s output')
+    parser.add_argument('--background', type=str, default='background.jpeg',
+                        help='Path to the background image to be used as input')
+    parser.add_argument('--stride', type=int, default=1, help='Stride for the sliding window')
+    # parser.add_argument('--mtmt-det', type=str, default=None, help='Path to the MTMT detection (refer to example)')
+    # parser.add_argument('--mtmt-input-baseline', action='store_true', help='Whether the standard network is being used (or if it is our network\'s gain with MTMT\'s detection as input)')
+    args = parser.parse_args()
+    args.checkpoint = os.path.join(args.proj_root, args.checkpoint)
+    args.output = os.path.join(args.proj_root, args.output)
+    args.background = os.path.join(args.output, args.background)
+    return args
+
+
 @torch.no_grad()
-def main():
+def main(args):
     # Whether to use CUDA or CPU
-    DEVICE = 'cuda'
+    DEVICE = args.device
     # Resolution the network was trained at
     NET_RES = 128
     # Batch size to utilize for simultaneous patch harmonization
     BATCH_SIZE = 64
     # Stride for the sliding window
-    STRIDE = 1
+    STRIDE = args.stride
 
     # Whether the standard network is being used
     # (or if it is our network's gain with MTMT's detection as input)
@@ -40,11 +65,11 @@ def main():
     MTMT_DET_PATH = 'your_path_here'
 
     # Path to the network's pre-trained weights
-    CHECKPOINT_PATH = 'your_path_here'
+    CHECKPOINT_PATH = args.checkpoint
     # Path to save the network's output
-    OUT_PATH = 'your_path_here'
+    OUT_PATH = args.output
     # Path to the background image to be used as input
-    BACKGROUND_PATH = 'your_path_here'
+    BACKGROUND_PATH = args.background
 
     # Loading pre-trained model
     checkpoint = torch.load(CHECKPOINT_PATH, map_location=DEVICE)
@@ -134,7 +159,11 @@ def main():
     full_det = full_det[NET_RES:NET_RES+h_orig, NET_RES:NET_RES+w_orig].reshape((h_orig, w_orig, 1)).repeat(3, axis=2)
 
     # Writing result
-    np.savez(OUT_PATH, gain=full_gain, det=full_det)
+    out_file_path = os.path.join(OUT_PATH, 'network_output.npz')
+    np.savez(out_file_path, gain=full_gain, det=full_det)
+    print('Saved results to', out_file_path)
+
 
 if __name__ == '__main__':
-    main()
+    args = parse_argument()
+    main(args)

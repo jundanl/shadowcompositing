@@ -16,6 +16,9 @@ You should have received a copy of the license along with this
 work. If not, see <http://creativecommons.org/licenses/by-nc/4.0/>.
 """
 
+import os
+import argparse
+
 import numpy as np
 import cv2 as cv
 import Imath
@@ -257,6 +260,23 @@ def get_roi_comp(obj_shadow, comp, roi_pad=5, roi_scale=2):
     return highlight_comp
 
 
+def parse_argument():
+    parser = argparse.ArgumentParser(description='Inference script for the shadow harmonization network')
+    parser.add_argument('--device', type=str, default='cuda', help='Whether to use CUDA or CPU')
+    parser.add_argument('--proj_root', type=str, default='/mnt/94E2ECCDE2ECB4A0/Projects/shadowcompositing',
+                        help='Path to the project root')
+    parser.add_argument('--output', type=str, default='out/test_bunny', help='Path to save the network\'s output')
+    parser.add_argument('--background', type=str, default='background.jpeg',
+                        help='Path to the background image to be used as input')
+    parser.add_argument('--frame_idx', type=str, default="0000", help='Frame index to process')
+    args = parser.parse_args()
+    args.output = os.path.join(args.proj_root, args.output)
+    args.background = os.path.join(args.output, args.background)
+    return args
+
+
+args = parse_argument()
+
 # Multiplier for the warped shadow intensities to compensate for lim -> 1
 LAMBDA = 1.1
 # Exposure multiplier for the traditional method's shadows (to compensate for unknown lighting, manually-set)
@@ -274,22 +294,24 @@ ROI_PAD = 5
 ROI_SCALE = 3
 
 # Full path to the LDR background image
-BACKGROUND = 'your_path_here'
+BACKGROUND = args.background
 # Full path to the EXR render layers containing the object to insert
 # Note: see the Blender file and rendering script example for clarity
-SUN_RENDER = 'your_path_here'
-SKY_RENDER = 'your_path_here'
-SUN_SHADOW_RENDER = 'your_path_here'
-SKY_SHADOW_RENDER = 'your_path_here'
+SUN_RENDER = os.path.join(args.output, f'camera_sun{args.frame_idx}.exr')
+SKY_RENDER = os.path.join(args.output, f'camera_sky{args.frame_idx}.exr')
+SUN_SHADOW_RENDER = os.path.join(args.output, f'camera_sun_shadow{args.frame_idx}.exr')
+SKY_SHADOW_RENDER = os.path.join(args.output, f'camera_sky_shadow{args.frame_idx}.exr')
 # Full path to the Blender metadata containing camera, geometry, and illumination data
 # Note: see the Blender file and rendering script example for clarity
-METADATA = 'your_path_here'
+METADATA = os.path.join(args.output, f'camera_metadata.npz')
 
 # Full path to the network output for the background image
 # Note: see the PBLA detection script for clarity
-NET_OUT = 'your_path_here'
+NET_OUT = os.path.join(args.output, f'network_output.npz')
 # Full path to save our composite
-COMP_OUT = 'your_path_here'
+COMP_OUT = os.path.join(args.output, f'composite.png')
+for p in [BACKGROUND, SUN_RENDER, SKY_RENDER, SUN_SHADOW_RENDER, SKY_SHADOW_RENDER, METADATA, NET_OUT]:
+    assert os.path.exists(p), f'Path {p} does not exist'
 
 # Whether to render the traditional baseline for comparison
 TRADITIONAL = False
