@@ -43,7 +43,7 @@ def parse_argument():
     args = parser.parse_args()
     args.checkpoint = os.path.join(args.proj_root, args.checkpoint)
     args.output = os.path.join(args.proj_root, args.output)
-    args.background = os.path.join(args.output, args.background)
+    # args.background = os.path.join(args.output, args.background)
     return args
 
 
