@@ -3,6 +3,7 @@ out/
 rsc/demo
 rsc/*.ckpt
 rsc/*.zip
+test_data/
 
 # Resources
 rsc/checkpoints/*
