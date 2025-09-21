@@ -39,6 +39,9 @@ def numpy_warp(image, xyz, camera_matrix, zenith, azimuth, resolution_x, resolut
     sun = np.array([radius * np.sin(zenith) * np.cos(azimuth),
                     radius * np.sin(zenith) * np.sin(azimuth),
                     radius * np.cos(zenith)])
+    sun = np.array([
+        -0.59678075, - 0.39588492,  0.69794547
+    ])
 
     # Vectorizing directional vectors per pixel (sun direction, ground plane point and normal)
     virtual_dir = np.ones((resolution_y, resolution_x, 3)) * -sun
@@ -341,19 +344,28 @@ zenith = metadata['zenith'].astype(float)
 azimuth = metadata['azimuth'].astype(float)
 
 # Loading renders
+print(f"Start loading renders")
 sun = load_blender_exr(SUN_RENDER, (res[1], res[0]))
 sky = load_blender_exr(SKY_RENDER, (res[1], res[0]))
 sun_shadow = load_blender_exr(SUN_SHADOW_RENDER, (res[1], res[0]))
 sky_shadow = load_blender_exr(SKY_SHADOW_RENDER, (res[1], res[0]))
+print(f"Finished loading renders")
 
 # Loading background
 bg = iio.v2.imread(BACKGROUND).astype(float) / 255.
 bg = bg[:, :, :3]
 bg_linear = bg ** 2.2
 
+# Resize images
+# det = cv.resize(det, (res[0], res[1]), interpolation=cv.INTER_LINEAR)
+# gain = cv.resize(gain, (res[0], res[1]), interpolation=cv.INTER_LINEAR)
+# bg = cv.resize(bg, (res[0], res[1]), interpolation=cv.INTER_LINEAR)
+
 # Loading render layers
 obj_shadow = 1 - sun_shadow['shadow']
 obj_mask = np.repeat(sun['mask'].reshape((res[1], res[0], 1)), 3, axis=-1)
+print(f"min of obj_mask: {np.min(obj_mask)}, max of obj_mask: {np.max(obj_mask)}")
+print(f"percentile: {np.percentile(obj_mask, 100)}")
 obj_mask /= np.percentile(obj_mask, 100)
 xyz = sun['position']
 albedo = sun['albedo']
