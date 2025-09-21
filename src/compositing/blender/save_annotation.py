@@ -78,6 +78,7 @@ def save_keyframe():
     world = bpy.data.worlds['World']
     sky = world.node_tree.nodes['Sky Texture']
     output = world.node_tree.nodes['World Output']
+    background_node = world.node_tree.nodes['Background']
     links = world.node_tree.links
     scene = bpy.data.scenes['Scene']
     nodes = scene.node_tree.nodes
@@ -104,9 +105,9 @@ def save_keyframe():
     print('[1/4] Rendering Sky')
     sun.hide_render = True
     nodes['File Output'].base_path = base_path + '_sky'
-    nodes['Value'].outputs[0].default_value = 0
+    # nodes['Value'].outputs[0].default_value = 0
     bpy.ops.render.render()
-    nodes['Value'].outputs[0].default_value = 1
+    # nodes['Value'].outputs[0].default_value = 1
     sun.hide_render = False
 
     print('[2/4] Rendering Sky Shadow')
@@ -120,23 +121,26 @@ def save_keyframe():
     sun.hide_render = False
 
     print('[3/4] Rendering Sun')
-    links.remove(links[0])
-    nodes['Value'].outputs[0].default_value = 0
+    # links.remove(links[0])
+    links.remove(sky.outputs[0].links[0])
+    # nodes['Value'].outputs[0].default_value = 0
     nodes['File Output'].base_path = base_path + '_sun'
     bpy.ops.render.render()
-    nodes['Value'].outputs[0].default_value = 1
-    links.new(sky.outputs[0], output.inputs[0])
+    # nodes['Value'].outputs[0].default_value = 1
+    # links.new(sky.outputs[0], output.inputs[0])
+    links.new(sky.outputs[0], background_node.inputs[0])
 
     print('[4/4] Rendering Sun Shadow')
-    links.remove(links[0])
+    # links.remove(links[0])
+    links.remove(sky.outputs[0].links[0])
     for object in objects:
         object.visible_camera = False
     nodes['File Output'].base_path = base_path + '_sun_shadow'
     bpy.ops.render.render()
     for object in objects:
         object.visible_camera = True
-    links.new(sky.outputs[0], output.inputs[0])
-
+    # links.new(sky.outputs[0], output.inputs[0])
+    links.new(sky.outputs[0], background_node.inputs[0])
     print('DONE')
 
 
