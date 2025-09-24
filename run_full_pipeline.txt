@@ -1,0 +1,3 @@
+ ~/blender compare_2_EG.blend -P  ../../../src/compositing/blender/run.py  -b
+ python src/network/test_pbla.py
+ python src/compositing/composite.py
