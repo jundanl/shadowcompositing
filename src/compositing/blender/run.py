@@ -18,10 +18,13 @@ work. If not, see <http://creativecommons.org/licenses/by-nc/4.0/>.
 
 import os
 
+import bpy
+bpy.ops.preferences.addon_enable(module="sun_position")
+
 # Note: open and run just this script from inside Blender. This way,
 #       save_annotation.py can be changed outside Blender's editor.
 
-DIRECTORY = 'your_path_here' # Path to the save_annotation.py script
+DIRECTORY = '../../../src/compositing/blender' # Path to the save_annotation.py script
 SCRIPT = 'save_annotation.py'
 
 FILEPATH = os.path.join(DIRECTORY, SCRIPT)
